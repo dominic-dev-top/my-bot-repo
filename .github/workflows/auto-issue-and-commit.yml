@@ -1,0 +1,36 @@
+name: Bot Automation – Issues + Commits
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'   # Every 5 minutes
+  workflow_dispatch:
+
+jobs:
+  bot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Create issue automatically
+        uses: imjohnbo/issue-bot@v3.4.4
+        with:
+          title: "[BOT] Auto issue at {{timestamp}}"
+          body: "Automatic issue generated at {{timestamp}}"
+          labels: "auto-bot"
+          close-previous: false
+
+      - name: Run bot logic
+        uses: actions/setup-python@v4
+        with: { python-version: '3.x' }
+      - run: pip install PyGithub
+      - run: python bot/bot.py
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+
+      - name: Auto commit results
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: chore: update achievements [auto-bot]
+          file_pattern: |
+            bot/achievements.json
+            logs/bot-log.txt
