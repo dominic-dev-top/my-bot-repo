@@ -1,22 +1,22 @@
-import os, datetime, json
+import os
+import datetime
+import json
 from github import Github
 
-now = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
-token = os.getenv("GH_PAT")
-repo = Github(token).get_repo("dominic-dev-top/dhairya-dom")
+# Access token from environment variable
+token = os.getenv('GH_PAT')
+if not token:
+    raise Exception("Missing GH_PAT token")
 
-# Load or init achievements
-file = "bot/achievements.json"
-ach = json.load(open(file)) if os.path.exists(file) else {"issues":0,"commits":0,"badges":[]}
+g = Github(token)
+repo = g.get_user().get_repo("my-bot-repo")
 
-# Update logs
-with open("logs/bot-log.txt","a") as f:
-    f.write(f"Activity at {now}\n")
-ach["commits"] += 1
+# Log something
+log = f"Bot ran at {datetime.datetime.utcnow().isoformat()}Z"
+with open("logs/bot-log.txt", "a") as f:
+    f.write(log + "\n")
 
-# Save achievements
-ach["issues"] = ach.get("issues", 0) + 1
-if ach["issues"] >= 10 and "🚀 Explorer" not in ach["badges"]:
-    ach["badges"].append("🚀 Explorer")
-with open(file,"w") as f:
-    json.dump(ach, f, indent=2)
+# Dummy update to achievements
+achievements = {"last_run": log}
+with open("bot/achievements.json", "w") as f:
+    json.dump(achievements, f, indent=2)
